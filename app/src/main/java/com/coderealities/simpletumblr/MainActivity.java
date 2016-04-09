@@ -1,23 +1,40 @@
 package com.coderealities.simpletumblr;
 
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.types.Post;
 import com.tumblr.jumblr.types.User;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends Activity {
 
     private JumblrClient mClient;
+    private RecyclerView mPostListView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mPostListView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        mPostListView.setHasFixedSize(true);
+
+        // use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(this);
+        mPostListView.setLayoutManager(mLayoutManager);
     }
 
     @Override
@@ -35,25 +52,22 @@ public class MainActivity extends Activity {
                 "248VjWRvM6u2uayQchWcFD0aOwJOOdWn1ShPjgkVrr3IHu5BEk"
         );
 
-        // Write the user's name
         new Thread(new Runnable() {
             @Override
             public void run() {
                 User user = mClient.user();
-                System.out.println(user.getName());
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("reblog_info", "true");
+                List<Post> complation = mClient.userDashboard(params);
+
+                final PostListAdapter postAdapter = new PostListAdapter(complation);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mPostListView.setAdapter(postAdapter);
+                    }
+                });
             }
         }).start();
-//        refreshList();
-    }
-
-    private void refreshList() {
-        List<Post> posts = mClient.userDashboard();
-        // only include posts user hasn't loaded on this device (cut off via last post time)
-        // evaluate each post to see whether it's interesting:
-            // Is it an image or video? then yes
-            // does it have any tags on the white list associated with the particular blog?
-            // is it an ask, submission, or reblog? filter appropriately.
-            // add it to appropriate category for optional filters
-            // if it passes any of the previous tests, add it to the current list.
     }
 }
