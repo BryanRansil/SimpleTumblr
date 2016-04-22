@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Simplr</string>
     <string name="greeting">Deeeeerp!</string>
+    <string name="notes">notes</string>
 </resources>

@@ -19,9 +19,11 @@ public class PostListAdapter extends RecyclerView.Adapter<PostListAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
         public CardView mCardView;
+        public TextView mTextContentView;
         public ViewHolder(CardView v) {
             super(v);
             mCardView = v;
+            mTextContentView = (TextView) v.findViewById(R.id.text_content);
         }
     }
 
@@ -36,7 +38,7 @@ public class PostListAdapter extends RecyclerView.Adapter<PostListAdapter.ViewHo
                                                          int viewType) {
         // create a new view
         CardView v = (CardView) LayoutInflater.from(parent.getContext())
-                                              .inflate(R.layout.my_text_view, parent, false);
+                                              .inflate(R.layout.post_view, parent, false);
         // set the view's size, margins, paddings and layout parameters
         ViewHolder vh = new ViewHolder(v);
         return vh;
@@ -47,7 +49,7 @@ public class PostListAdapter extends RecyclerView.Adapter<PostListAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        ((TextView)holder.mCardView.getChildAt(0)).setText(getContent(mDataset.get(position)));
+        holder.mTextContentView.setText(getContent(mDataset.get(position)) + " ");
     }
 
     private String getContent(Post post) {
