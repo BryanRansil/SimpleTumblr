@@ -2,39 +2,29 @@ package com.coderealities.simpletumblr;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.types.Post;
-import com.tumblr.jumblr.types.User;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends Activity {
-
+    private static final String TAG = MainActivity.class.getName();
     private JumblrClient mClient;
-    private RecyclerView mPostListView;
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
+    private LinearLayout mPostListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mPostListView = (RecyclerView) findViewById(R.id.recycler_view);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mPostListView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(this);
-        mPostListView.setLayoutManager(mLayoutManager);
+        mPostListView = (LinearLayout) findViewById(R.id.post_list_layout);
     }
 
     @Override
@@ -55,19 +45,33 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                User user = mClient.user();
-                Map<String, Object> params = new HashMap<String, Object>();
-                params.put("reblog_info", "true");
-                List<Post> complation = mClient.userDashboard(params);
+            Map<String, Object> params = new HashMap<String, Object>();
+            params.put("reblog_info", "true");
+            final List<PostContent> complation = new LinkedList<PostContent>();
+            for (Post post : mClient.userDashboard(params)) {
+                complation.add(new PostContent(post));
+            }
 
-                final PostListAdapter postAdapter = new PostListAdapter(complation);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mPostListView.setAdapter(postAdapter);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    for (PostContent postContent : complation) {
+                        mPostListView.addView(postContent.generateView(getBaseContext(), mPostListView.getMeasuredWidth()));
                     }
-                });
+                }
+            });
             }
         }).start();
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
     }
 }

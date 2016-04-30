@@ -10,15 +10,21 @@
     tools:context="com.coderealities.simpletumblr.MainActivity">
 
     <TextView
-        android:id="@+id/my_title"
+        android:id="@+id/title_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!"/>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:scrollbars="vertical"
+    <ScrollView
+        android:id="@+id/post_list_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/my_title"/>
+        android:layout_below="@id/title_bar">
+        <LinearLayout
+            android:id="@+id/post_list_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>
