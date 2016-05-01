@@ -11,11 +11,16 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.tumblr.jumblr.types.AnswerPost;
 import com.tumblr.jumblr.types.Photo;
 import com.tumblr.jumblr.types.PhotoPost;
 import com.tumblr.jumblr.types.PhotoSize;
 import com.tumblr.jumblr.types.Post;
+import com.tumblr.jumblr.types.TextPost;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,14 +66,19 @@ public class PostContent {
                                 (int) (parentWidth * 0.9),
                                 (int) (((parentWidth * 0.9) / mDrawableSizes.get(drawable).getWidth()) * mDrawableSizes.get(drawable).getHeight()),
                                 true));
+                ((BitmapDrawable)drawable).getBitmap().recycle();
 
                 imageView.setImageDrawable(scaledDrawable);
-                postView.imageContent.addView(imageView);
+                addToContentView(postView, imageView);
             }
         } else {
             postView.textContent.setText(mPost.getType());
         }
         return postView;
+    }
+
+    private static void addToContentView(PostView postView, View view) {
+        ((LinearLayout)postView.findViewById(R.id.post_content_layout)).addView(view);
     }
 
     @Nullable

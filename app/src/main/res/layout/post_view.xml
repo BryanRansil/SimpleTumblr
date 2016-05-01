@@ -5,74 +5,71 @@
     android:layout_gravity="center"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/card_margin">
+    android:paddingTop="@dimen/card_padding"
+    android:layout_marginBottom="@dimen/card_margin"
+    android:orientation="vertical">
     <LinearLayout
+        android:id="@+id/post_content_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="@dimen/card_padding"
         android:orientation="vertical">
-        <LinearLayout
-            android:id="@+id/image_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
         <TextView
             android:id="@+id/text_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-        <LinearLayout
-            android:id="@+id/post_bottom_bar_view"
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/post_bottom_bar_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tag_list_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/tag_list_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            android:layout_height="wrap_content" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
             <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true">
+                <TextView
+                    android:id="@+id/note_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true">
-                    <TextView
-                        android:id="@+id/note_count"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="@dimen/post_text_size"
-                        android:layout_alignParentLeft="true"/>
-                    <TextView
-                        android:id="@+id/notes_label"
-                        android:text="@string/notes"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_toRightOf="@id/note_count"
-                        android:textSize="@dimen/post_text_size" />
-                </RelativeLayout>
-                <LinearLayout
-                    android:id="@+id/generic_post_interaction_buttons"
+                    android:textSize="@dimen/post_text_size"
+                    android:layout_alignParentLeft="true"/>
+                <TextView
+                    android:id="@+id/notes_label"
+                    android:text="@string/notes"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:layout_alignParentRight="true">
-                    <ImageButton
-                        android:id="@+id/answer_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/answer_button_drawable"/>
-                    <ImageButton
-                        android:id="@+id/reblog_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/reblog_button_drawable"/>
-                    <ImageButton
-                        android:id="@+id/like_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/like_button_drawable"/>
-                </LinearLayout>
+                    android:layout_toRightOf="@id/note_count"
+                    android:textSize="@dimen/post_text_size" />
             </RelativeLayout>
-        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/generic_post_interaction_buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_alignParentRight="true">
+                <ImageButton
+                    android:id="@+id/answer_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/answer_button_drawable"/>
+                <ImageButton
+                    android:id="@+id/reblog_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/reblog_button_drawable"/>
+                <ImageButton
+                    android:id="@+id/like_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/like_button_drawable"/>
+            </LinearLayout>
+        </RelativeLayout>
     </LinearLayout>
 </LinearLayout>
