@@ -7,76 +7,91 @@
     android:layout_height="wrap_content"
     android:paddingTop="@dimen/card_padding"
     android:layout_marginBottom="@dimen/card_margin"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    style="@style/PostViewTheme">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal">
+        android:layout_gravity="center_horizontal"
+        style="@style/PostViewTheme">
         <ImageView
             android:id="@+id/post_blog_avatar"
             android:layout_width="@dimen/avatar_size"
-            android:layout_height="@dimen/avatar_size" />
+            android:layout_height="@dimen/avatar_size"
+            style="@style/PostViewTheme"/>
         <TextView
             android:id="@+id/post_blog_name"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            style="@style/PostViewTheme"/>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/post_content_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"/>
+        android:orientation="vertical"
+        style="@style/PostViewTheme"/>
     <LinearLayout
         android:id="@+id/post_bottom_bar_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        style="@style/PostViewTheme">
         <TextView
             android:id="@+id/tag_list_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            style="@style/PostViewTheme"/>
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            style="@style/PostViewTheme">
             <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true">
+                android:layout_centerVertical="true"
+                style="@style/PostViewTheme">
                 <TextView
                     android:id="@+id/note_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/post_text_size"
-                    android:layout_alignParentLeft="true"/>
+                    android:layout_alignParentLeft="true"
+                    style="@style/PostViewTheme"/>
                 <TextView
                     android:id="@+id/notes_label"
                     android:text="@string/notes"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_toRightOf="@id/note_count"
-                    android:textSize="@dimen/post_text_size" />
+                    android:textSize="@dimen/post_text_size"
+                    style="@style/PostViewTheme" />
             </RelativeLayout>
             <LinearLayout
                 android:id="@+id/generic_post_interaction_buttons"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
-                android:layout_alignParentRight="true">
+                android:layout_alignParentRight="true"
+                style="@style/PostViewTheme">
                 <ImageButton
                     android:id="@+id/answer_button"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:background="@drawable/answer_button_drawable"/>
+                    android:background="@drawable/answer_button_drawable"
+                    style="@style/PostViewTheme"/>
                 <ImageButton
                     android:id="@+id/reblog_button"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:background="@drawable/reblog_button_drawable"/>
+                    android:background="@drawable/reblog_button_drawable"
+                    style="@style/PostViewTheme"/>
                 <ImageButton
                     android:id="@+id/like_button"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:background="@drawable/like_button_drawable"/>
+                    android:background="@drawable/like_button_drawable"
+                    style="@style/PostViewTheme"/>
             </LinearLayout>
         </RelativeLayout>
     </LinearLayout>

@@ -1,6 +1,7 @@
 package com.coderealities.simpletumblr;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 
@@ -38,6 +39,9 @@ public class MainActivity extends Activity {
                 "JSgSbWUnpQjQJv2RV7OR0kpfpYQjqHtrK5Y5Nfq9LPKC2s5Tv7",
                 "248VjWRvM6u2uayQchWcFD0aOwJOOdWn1ShPjgkVrr3IHu5BEk"
         );
+        final ProgressDialog progress = new ProgressDialog(this);
+        progress.setMessage("Loading Posts...");
+        progress.show();
 
         new Thread(new Runnable() {
             @Override
@@ -53,6 +57,7 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     for (PostContent postContent : complation) {
+                        progress.dismiss();
                         mPostListView.addView(postContent.generateView(getBaseContext(), mPostListView.getMeasuredWidth()));
                     }
                 }
