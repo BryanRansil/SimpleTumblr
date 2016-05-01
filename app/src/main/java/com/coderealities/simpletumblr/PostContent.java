@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.types.AnswerPost;
 import com.tumblr.jumblr.types.Photo;
 import com.tumblr.jumblr.types.PhotoPost;
@@ -25,6 +26,7 @@ import com.tumblr.jumblr.types.TextPost;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -38,12 +40,14 @@ public class PostContent {
     private static final String TAG = PostContent.class.getName();
     private final Post mPost;
     private final List<Drawable> mDrawables;
+    private final Map<String, Drawable> mAvatars;
     private final Map<Drawable, PhotoSize> mDrawableSizes;
     private final Long mNoteCount;
 
-    public PostContent(Post post) {
+    public PostContent(Post post, JumblrClient jumblrClient) {
         mPost = post;
         mNoteCount = post.getNoteCount();
+        //loadSourceLine(jumblrClient);
         if (post.getType().equals("photo")) {
             mDrawableSizes = new HashMap<>();
             mDrawables = loadImages(post);
@@ -51,11 +55,30 @@ public class PostContent {
             mDrawableSizes = null;
             mDrawables = null;
         }
+        mAvatars = new HashMap<>();
+    }
+
+    private void loadSourceLine(JumblrClient jumblrClient) {
+        HttpURLConnection connection = null;
+        try {
+            String blogAvatarUrl = jumblrClient.blogInfo(mPost.getBlogName()).avatar();
+
+            connection = (HttpURLConnection) new URL(blogAvatarUrl).openConnection();
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Drawable drawable = Drawable.createFromStream(input, String.valueOf(mPost.getBlogName()));
+            mAvatars.put(mPost.getBlogName(), drawable);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public View generateView(Context context, final int parentWidth) {
         PostView postView = new PostView(context);
         postView.setNoteCount(mNoteCount);
+        postView.setPosterLine(mPost.getBlogName(), mAvatars.get(mPost.getBlogName()));
         if (mPost instanceof PhotoPost && mDrawables != null) {
             addTextContent(postView, context, ((PhotoPost) mPost).getCaption());
             for (Drawable drawable : mDrawables) {

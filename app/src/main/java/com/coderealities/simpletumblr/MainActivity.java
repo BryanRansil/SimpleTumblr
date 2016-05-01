@@ -2,10 +2,7 @@ package com.coderealities.simpletumblr;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.types.Post;
@@ -49,7 +46,7 @@ public class MainActivity extends Activity {
             params.put("reblog_info", "true");
             final List<PostContent> complation = new LinkedList<PostContent>();
             for (Post post : mClient.userDashboard(params)) {
-                complation.add(new PostContent(post));
+                complation.add(new PostContent(post, mClient));
             }
 
             runOnUiThread(new Runnable() {
