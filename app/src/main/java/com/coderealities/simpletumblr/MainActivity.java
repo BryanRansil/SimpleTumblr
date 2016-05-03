@@ -14,11 +14,14 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getName();
+    private static final long LOAD_REFRESH_TIME_MS = TimeUnit.MINUTES.toMillis(15);
     private JumblrClient mClient;
     private LinearLayout mPostListView;
+    private long mLastLoadTimeMs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +45,12 @@ public class MainActivity extends Activity {
                 "248VjWRvM6u2uayQchWcFD0aOwJOOdWn1ShPjgkVrr3IHu5BEk"
         );
 
+        if (mPostListView.getChildCount() > 0 && loadedRecently()) {
+            return;
+        } else if (mPostListView.getChildCount() > 0) {
+            mPostListView.removeAllViews();
+        }
+
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setMessage("Loading Posts...");
         progress.show();
@@ -56,10 +65,18 @@ public class MainActivity extends Activity {
                     complation.add(new PostContent(post, mClient));
                 }
 
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("reblog_info", "true");
+                final List<PostContent> compilation = new LinkedList<PostContent>();
+                for (Post post : mClient.userDashboard(params)) {
+                    compilation.add(new PostContent(post, mClient));
+                }
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        for (PostContent postContent : complation) {
+                        mLastLoadTimeMs = System.currentTimeMillis();
+                        for (PostContent postContent : compilation) {
                             progress.dismiss();
                             mPostListView.addView(postContent.generateView(getBaseContext()));
                         }
@@ -67,6 +84,10 @@ public class MainActivity extends Activity {
                 });
             }
         }).start();
+    }
+
+    private boolean loadedRecently() {
+        return mLastLoadTimeMs + LOAD_REFRESH_TIME_MS > System.currentTimeMillis();
     }
 
 
