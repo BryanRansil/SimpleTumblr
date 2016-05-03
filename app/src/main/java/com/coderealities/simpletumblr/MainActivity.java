@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.widget.LinearLayout;
 
 import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.types.Blog;
 import com.tumblr.jumblr.types.Post;
+import com.tumblr.jumblr.types.User;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,6 +41,7 @@ public class MainActivity extends Activity {
                 "JSgSbWUnpQjQJv2RV7OR0kpfpYQjqHtrK5Y5Nfq9LPKC2s5Tv7",
                 "248VjWRvM6u2uayQchWcFD0aOwJOOdWn1ShPjgkVrr3IHu5BEk"
         );
+
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setMessage("Loading Posts...");
         progress.show();
@@ -46,22 +49,22 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-            Map<String, Object> params = new HashMap<String, Object>();
-            params.put("reblog_info", "true");
-            final List<PostContent> complation = new LinkedList<PostContent>();
-            for (Post post : mClient.userDashboard(params)) {
-                complation.add(new PostContent(post, mClient));
-            }
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    for (PostContent postContent : complation) {
-                        progress.dismiss();
-                        mPostListView.addView(postContent.generateView(getBaseContext(), mPostListView.getMeasuredWidth()));
-                    }
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("reblog_info", "true");
+                final List<PostContent> complation = new LinkedList<PostContent>();
+                for (Post post : mClient.userDashboard(params)) {
+                    complation.add(new PostContent(post, mClient));
                 }
-            });
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (PostContent postContent : complation) {
+                            progress.dismiss();
+                            mPostListView.addView(postContent.generateView(getBaseContext()));
+                        }
+                    }
+                });
             }
         }).start();
     }

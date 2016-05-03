@@ -48,7 +48,6 @@ public class PostContent {
     private final Post mPost;
     private final List<Drawable> mDrawables;
     private final Map<String, Drawable> mAvatars;
-    private final Map<Drawable, PhotoSize> mDrawableSizes;
     private final Long mNoteCount;
 
     public PostContent(Post post, JumblrClient jumblrClient) {
@@ -56,10 +55,8 @@ public class PostContent {
         mNoteCount = post.getNoteCount();
         //loadSourceLine(jumblrClient);
         if (post.getType().equals("photo")) {
-            mDrawableSizes = new HashMap<>();
             mDrawables = loadImages(post);
         } else {
-            mDrawableSizes = null;
             mDrawables = null;
         }
         mAvatars = new HashMap<>();
@@ -82,22 +79,17 @@ public class PostContent {
         }
     }
 
-    public View generateView(Context context, final int parentWidth) {
+    public View generateView(Context context) {
         PostView postView = new PostView(context);
         postView.setNoteCount(mNoteCount);
         postView.setPosterLine(mPost.getBlogName(), mAvatars.get(mPost.getBlogName()));
         if (mPost instanceof PhotoPost && mDrawables != null) {
             for (Drawable drawable : mDrawables) {
                 ImageView imageView = new ImageView(context);
-                Log.d(TAG, drawable.getBounds().width() + " " + drawable.getBounds().height());
-                Drawable scaledDrawable = new BitmapDrawable(context.getResources(),
-                        Bitmap.createScaledBitmap(((BitmapDrawable)drawable).getBitmap(),
-                                (int) (parentWidth * 0.9),
-                                (int) (((parentWidth * 0.9) / mDrawableSizes.get(drawable).getWidth()) * mDrawableSizes.get(drawable).getHeight()),
-                                true));
-                ((BitmapDrawable)drawable).getBitmap().recycle();
-
-                imageView.setImageDrawable(scaledDrawable);
+                imageView.setPadding(4, 4, 4, 4);
+                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                imageView.setAdjustViewBounds(true);
+                imageView.setImageDrawable(drawable);
                 addToContentView(postView, imageView);
             }
             addTextContent(postView, context, ((PhotoPost) mPost).getCaption());
@@ -146,7 +138,6 @@ public class PostContent {
                 InputStream input = connection.getInputStream();
                 Drawable drawable = Drawable.createFromStream(input, String.valueOf(post.getId()));
                 drawables.add(drawable);
-                mDrawableSizes.put(drawable, photo.getOriginalSize());
             }
             return drawables;
         } catch (IOException e) {
