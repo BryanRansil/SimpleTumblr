@@ -57,7 +57,7 @@ public class PostContent {
         PostView postView = new PostView(context);
         postView.setNoteCount(mNoteCount);
         if (mPost instanceof PhotoPost && mDrawables != null) {
-            postView.textContent.setText(Html.fromHtml(((PhotoPost) mPost).getCaption()));
+            addTextContent(postView, context, ((PhotoPost) mPost).getCaption());
             for (Drawable drawable : mDrawables) {
                 ImageView imageView = new ImageView(context);
                 Log.d(TAG, drawable.getBounds().width() + " " + drawable.getBounds().height());
@@ -71,10 +71,22 @@ public class PostContent {
                 imageView.setImageDrawable(scaledDrawable);
                 addToContentView(postView, imageView);
             }
+        } else if (mPost instanceof TextPost) {
+            addTextContent(postView, context, ((TextPost) mPost).getBody());
+        } else if (mPost instanceof AnswerPost) {
+            addTextContent(postView, context, ((AnswerPost) mPost).getQuestion());
+            addTextContent(postView, context, ((AnswerPost) mPost).getAnswer());
         } else {
-            postView.textContent.setText(mPost.getType());
+            addTextContent(postView, context, mPost.getType());
         }
         return postView;
+    }
+
+    private void addTextContent(PostView postView, Context context, String text) {
+        TextView textView = new TextView(context);
+        textView.setTextColor(context.getResources().getColor(R.color.colorPrimaryDark));
+        textView.setText(Html.fromHtml(text));
+        addToContentView(postView, textView);
     }
 
     private static void addToContentView(PostView postView, View view) {

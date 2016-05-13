@@ -12,12 +12,7 @@
         android:id="@+id/post_content_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/text_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+        android:orientation="vertical"/>
     <LinearLayout
         android:id="@+id/post_bottom_bar_view"
         android:layout_width="match_parent"

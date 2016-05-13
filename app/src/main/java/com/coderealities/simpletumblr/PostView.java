@@ -9,14 +9,11 @@ import android.widget.TextView;
  * Copyright 2016, coderealities.com
  */
 public class PostView extends LinearLayout {
-    protected final TextView textContent;
     protected final TextView mNoteCount;
     protected final LinearLayout mContentView;
     public PostView(Context context) {
         super(context);
         inflate(context, R.layout.post_view, this);
-        textContent = (TextView)findViewById(R.id.text_content);
-        textContent.setText("HIIIIIII");
         mNoteCount = (TextView)findViewById(R.id.note_count);
         mContentView = (LinearLayout)findViewById(R.id.post_content_layout);
     }
