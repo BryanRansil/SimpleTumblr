@@ -60,8 +60,9 @@ public class MainActivity extends Activity {
             public void run() {
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("reblog_info", "true");
+
                 final List<PostContent> compilation = new LinkedList<PostContent>();
-                for (Post post : mClient.userDashboard(params)) {
+                for (Post post : mClient.blogPosts("simplrpostexamples.tumblr.com", params)) {
                     compilation.add(new PostContent(post, mClient));
                 }
 
