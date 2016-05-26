@@ -60,13 +60,6 @@ public class MainActivity extends Activity {
             public void run() {
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("reblog_info", "true");
-                final List<PostContent> complation = new LinkedList<PostContent>();
-                for (Post post : mClient.userDashboard(params)) {
-                    complation.add(new PostContent(post, mClient));
-                }
-
-                Map<String, Object> params = new HashMap<String, Object>();
-                params.put("reblog_info", "true");
                 final List<PostContent> compilation = new LinkedList<PostContent>();
                 for (Post post : mClient.userDashboard(params)) {
                     compilation.add(new PostContent(post, mClient));
