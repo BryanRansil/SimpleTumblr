@@ -73,8 +73,7 @@ public class PostContent {
     }
 
     public View generateView(Context context) {
-        PostView postView = new PostView(context);
-        postView.setNoteCount(mNoteCount);
+        PostView postView = new PostView(context, mPost);
         postView.setAuthorLine(mPost.getBlogName(), mAvatars.get(mPost.getBlogName()));
         if (mPost instanceof PhotoPost && mDrawables != null) {
             for (Drawable drawable : mDrawables) {
