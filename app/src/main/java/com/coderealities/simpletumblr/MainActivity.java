@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/*
+ * Copyright (c) 2016 coderealities.com
+ */
 public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getName();
     private static final long LOAD_REFRESH_TIME_MS = TimeUnit.MINUTES.toMillis(15);
@@ -83,8 +86,7 @@ public class MainActivity extends Activity {
     private boolean loadedRecently() {
         return mLastLoadTimeMs + LOAD_REFRESH_TIME_MS > System.currentTimeMillis();
     }
-
-
+    
     @Override
     public void onStart() {
         super.onStart();

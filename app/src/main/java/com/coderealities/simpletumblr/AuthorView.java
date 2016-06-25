@@ -8,6 +8,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+/*
+ * Copyright (c) 2016 coderealities.com
+ */
 public class AuthorView extends LinearLayout {
     private static final String TAG = AuthorView.class.getName();
     protected TextView mBlogName;

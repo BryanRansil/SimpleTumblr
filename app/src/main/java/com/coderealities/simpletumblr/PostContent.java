@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Copyright coderealities.com 4/29/2016.
+ * Copyright (c) 2016 coderealities.com
  */
 public class PostContent {
     private static final String TAG = PostContent.class.getName();

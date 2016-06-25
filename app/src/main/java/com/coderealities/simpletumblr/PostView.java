@@ -13,7 +13,7 @@ import com.tumblr.jumblr.types.Post;
 
 /**
  * Represents a tumblr post.
- * Copyright 2016, coderealities.com
+ * Copyright (c) 2016 coderealities.com
  */
 public class PostView extends LinearLayout {
     protected final TextView mNoteCount;
