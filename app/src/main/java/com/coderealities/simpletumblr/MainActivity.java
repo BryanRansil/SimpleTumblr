@@ -6,14 +6,13 @@ import android.os.Bundle;
 import android.widget.LinearLayout;
 
 import com.tumblr.jumblr.JumblrClient;
-import com.tumblr.jumblr.types.Blog;
 import com.tumblr.jumblr.types.Post;
-import com.tumblr.jumblr.types.User;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /*
@@ -58,29 +57,25 @@ public class MainActivity extends Activity {
         progress.setMessage("Loading Posts...");
         progress.show();
 
-        new Thread(new Runnable() {
+        final Map<String, Object> params = new HashMap<String, Object>();
+        params.put("reblog_info", "true");
+
+        final List<PostContent> compilation = TaskThread.getObject(new Callable<List<PostContent>>() {
             @Override
-            public void run() {
-                Map<String, Object> params = new HashMap<String, Object>();
-                params.put("reblog_info", "true");
-
-                final List<PostContent> compilation = new LinkedList<PostContent>();
+            public List<PostContent> call() throws Exception {
+                List<PostContent> compile = new LinkedList<PostContent>();
                 for (Post post : mClient.blogPosts("simplrpostexamples.tumblr.com", params)) {
-                    compilation.add(new PostContent(post, mClient));
+                    compile.add(new PostContent(post, mClient));
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mLastLoadTimeMs = System.currentTimeMillis();
-                        for (PostContent postContent : compilation) {
-                            progress.dismiss();
-                            mPostListView.addView(postContent.generateView(getBaseContext()));
-                        }
-                    }
-                });
+                return compile;
             }
-        }).start();
+        });
+
+        mLastLoadTimeMs = System.currentTimeMillis();
+        for (PostContent postContent : compilation) {
+            progress.dismiss();
+            mPostListView.addView(postContent.generateView(getBaseContext()));
+        }
     }
 
     private boolean loadedRecently() {

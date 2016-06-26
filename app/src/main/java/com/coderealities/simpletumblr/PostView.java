@@ -2,8 +2,6 @@ package com.coderealities.simpletumblr;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -37,42 +35,28 @@ public class PostView extends LinearLayout {
     }
 
     private void setupLikeButton(final Context context) {
-        if (mIsLiked) {
-            mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.liked_button_drawable));
-        }
-
-        final Runnable unlikeUi = new Runnable() {
-            @Override
-            public void run() {
-                mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.like_button_drawable));
-            }
-        };
-
-        final Runnable likeUi = new Runnable() {
-            @Override
-            public void run() {
-                mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.liked_button_drawable));
-            }
-        };
-
-        final Runnable setLike = new Runnable() {
-            @Override
-            public void run() {
-                if (mIsLiked) {
-                    mPost.unlike();
-                    new Handler(Looper.getMainLooper()).post(unlikeUi);
-                } else {
-                    mPost.like();
-                    new Handler(Looper.getMainLooper()).post(likeUi);
-                }
-                mIsLiked = !mIsLiked;
-            }
-        };
-
         mLikeButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(setLike).start();
+                if (mIsLiked) {
+                    mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.like_button_drawable));
+                    TaskThread.run(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPost.unlike();
+                            mIsLiked = false;
+                        }
+                    });
+                } else {
+                    mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.liked_button_drawable));
+                    TaskThread.run(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPost.like();
+                            mIsLiked = true;
+                        }
+                    });
+                }
             }
         });
     }
