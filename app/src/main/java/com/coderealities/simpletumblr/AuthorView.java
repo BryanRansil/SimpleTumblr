@@ -16,28 +16,27 @@ public class AuthorView extends LinearLayout {
     protected TextView mBlogName;
     protected ImageView mBlogAvatar;
 
+    public AuthorView(Context context, String blogName, Drawable blogAvatar) {
+        this(context);
+        setContent(blogName, blogAvatar);
+    }
+
     public AuthorView(Context context) {
-        super(context);
-        init();
+        this(context, null);
     }
 
     public AuthorView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
+        this(context, attrs, 0);
     }
 
     public AuthorView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
         inflate(getContext(), R.layout.author_line, this);
         mBlogName = (TextView)findViewById(R.id.author_name);
         mBlogAvatar = (ImageView)findViewById(R.id.author_avatar);
     }
 
-    public void setAuthorLine(String blogName, Drawable blogAvatar) {
+    public void setContent(String blogName, Drawable blogAvatar) {
         mBlogName.setText(blogName);
         mBlogAvatar.setImageDrawable(blogAvatar);
     }

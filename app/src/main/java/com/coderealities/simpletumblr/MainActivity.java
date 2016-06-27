@@ -2,14 +2,30 @@ package com.coderealities.simpletumblr;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.view.View;
 import android.widget.LinearLayout;
 
 import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.types.AnswerPost;
+import com.tumblr.jumblr.types.AudioPost;
+import com.tumblr.jumblr.types.ChatPost;
+import com.tumblr.jumblr.types.LinkPost;
+import com.tumblr.jumblr.types.PhotoPost;
 import com.tumblr.jumblr.types.Post;
+import com.tumblr.jumblr.types.QuotePost;
+import com.tumblr.jumblr.types.TextPost;
+import com.tumblr.jumblr.types.UnknownTypePost;
+import com.tumblr.jumblr.types.VideoPost;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -60,22 +76,61 @@ public class MainActivity extends Activity {
         final Map<String, Object> params = new HashMap<String, Object>();
         params.put("reblog_info", "true");
 
-        final List<PostContent> compilation = TaskThread.getObject(new Callable<List<PostContent>>() {
+        List<Post> compilation = TaskThread.getObject(new Callable<List<Post>>() {
             @Override
-            public List<PostContent> call() throws Exception {
-                List<PostContent> compile = new LinkedList<PostContent>();
-                for (Post post : mClient.blogPosts("simplrpostexamples.tumblr.com", params)) {
-                    compile.add(new PostContent(post, mClient));
-                }
-                return compile;
+            public List<Post> call() throws Exception {
+                return mClient.blogPosts("simplrpostexamples.tumblr.com", params);
             }
         });
 
-        mLastLoadTimeMs = System.currentTimeMillis();
-        for (PostContent postContent : compilation) {
+        for (Post post : compilation) {
             progress.dismiss();
-            mPostListView.addView(postContent.generateView(getBaseContext()));
+            mPostListView.addView(createPostView(post));
         }
+    }
+
+    private View createPostView(Post post) {
+        if (post instanceof AnswerPost) {
+            return new PostView(this, (AnswerPost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof AudioPost) {
+            return new PostView(this, (AudioPost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof ChatPost) {
+            return new PostView(this, (ChatPost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof LinkPost) {
+            return new PostView(this, (LinkPost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof PhotoPost) {
+            return new PostView(this, (PhotoPost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof QuotePost) {
+            return new PostView(this, (QuotePost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof TextPost) {
+            return new PostView(this, (TextPost)post, getAvatar(post.getBlogName()));
+        } else if (post instanceof VideoPost) {
+            return new PostView(this, (VideoPost)post, getAvatar(post.getBlogName()));
+        }
+        return new PostView(this, (UnknownTypePost)post, getAvatar(post.getBlogName()));
+    }
+
+    @Nullable
+    private Drawable getAvatar(final String blogName) {
+        return TaskThread.getObject(new Callable<Drawable>() {
+            @Override
+            public Drawable call() throws Exception {
+                HttpURLConnection connection = null;
+                try {
+                    String blogAvatarUrl = mClient.blogInfo(blogName).avatar();
+
+                    connection = (HttpURLConnection) new URL(blogAvatarUrl).openConnection();
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    return Drawable.createFromStream(input, String.valueOf(blogName));
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
     }
 
     private boolean loadedRecently() {

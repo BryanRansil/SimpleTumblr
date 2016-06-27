@@ -12,10 +12,7 @@ import java.util.concurrent.Future;
  * Copyright (c) 2016 coderealities.com
  */
 public class TaskThread {
-    private static ExecutorService sExecutor;
-    {
-        sExecutor = Executors.newFixedThreadPool(3);
-    }
+    private static ExecutorService sExecutor = Executors.newFixedThreadPool(3);
 
     @Nullable
     public static <T> T getObject(Callable<T> task) {
