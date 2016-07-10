@@ -1,10 +1,9 @@
 package com.coderealities.simpletumblr;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageView;
@@ -14,20 +13,13 @@ import android.widget.TextView;
 import com.tumblr.jumblr.types.AnswerPost;
 import com.tumblr.jumblr.types.Photo;
 import com.tumblr.jumblr.types.PhotoPost;
+import com.tumblr.jumblr.types.PhotoSize;
 import com.tumblr.jumblr.types.Post;
 import com.tumblr.jumblr.types.TextPost;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Represents a tumblr post.
@@ -42,13 +34,17 @@ public class PostView extends LinearLayout {
     private final ImageView mLikeButton;
     private Boolean mIsLiked;
 
-    public PostView(Context context, Post post, Drawable blogAvatar) {
+    public PostView(Context context, Post post) {
         super(context);
         inflate(context, R.layout.post_view, this);
         mNoteCount = (TextView)findViewById(R.id.note_count);
         mContentView = (LinearLayout)findViewById(R.id.post_content_layout);
         mAuthorLine = (AuthorView)findViewById(R.id.author_line);
-        mAuthorLine.setContent(post.getBlogName(), blogAvatar);
+        mAuthorLine.setText(post.getBlogName());
+        if (context instanceof MainActivity) {
+//            ((MainActivity) context).fillAvatar(post.getBlogName(), String.valueOf(post.getBlogName() + ".tumblr.com"), mAuthorLine.mBlogAvatar);
+        }
+
         mPost = post;
         mNoteCount.setText(post.getNoteCount() + " ");
         mLikeButton = (ImageView)findViewById(R.id.like_button);
@@ -56,8 +52,8 @@ public class PostView extends LinearLayout {
         setupLikeButton(context);
     }
 
-    public PostView(Context context, AnswerPost post, Drawable blogAvatar) {
-        this(context, (Post) post, blogAvatar);
+    public PostView(Context context, AnswerPost post) {
+        this(context, (Post) post);
         addContent(new AuthorView(getContext(), post.getAskingName(), null));
 
         WebView webView = new WebView(getContext());
@@ -68,26 +64,43 @@ public class PostView extends LinearLayout {
         addContent(post.getAnswer());
     }
 
-    public PostView(Context context, PhotoPost post, Drawable blogAvatar) {
-        this(context, (Post) post, blogAvatar);
+    public PostView(Context context, final PhotoPost post) {
+        this(context, (Post) post);
 
-        List<Drawable> drawables = getPostDrawables(mPost);
-        if (drawables == null) {
-            return;
-        }
-        for (Drawable drawable : drawables) {
-            ImageView imageView = new ImageView(getContext());
+        int width = mContentView.getWidth() - mContentView.getPaddingLeft();
+        for (Photo photo : post.getPhotos()) {
+            final ImageView imageView = new ImageView(getContext());
             imageView.setPadding(4, 4, 4, 4);
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView.setAdjustViewBounds(true);
-            imageView.setImageDrawable(drawable);
+            imageView.setMinimumWidth(width);
+            imageView.setMinimumHeight(width * photo.getOriginalSize().getHeight() / photo.getOriginalSize().getWidth());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                imageView.setImageDrawable(context.getDrawable(R.drawable.blank_image));
+            } else {
+                imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.blank_image));
+            }
             mContentView.addView(imageView);
+            if (context instanceof MainActivity) {
+                ((MainActivity) context).fillWithImage(getOptimalSize(photo, imageView).getUrl(), String.valueOf(post.getId()), imageView);
+            }
         }
         addContent(post.getCaption());
     }
 
-    public PostView(Context context, TextPost post, Drawable blogAvatar) {
-        this(context, (Post) post, blogAvatar);
+    private PhotoSize getOptimalSize(Photo photo, ImageView imageView) {
+        return photo.getOriginalSize();
+//        for (PhotoSize photoSize : photo.getSizes()) {
+//            if (Math.abs(photoSize.getHeight() - imageView.getHeight()) < Math.abs(bestMatch.getHeight() - imageView.getHeight())
+//                    && Math.abs(photoSize.getWidth() - imageView.getWidth()) < Math.abs(bestMatch.getWidth() - imageView.getWidth())) {
+//                bestMatch = photoSize;
+//            }
+//        }
+//        return bestMatch;
+    }
+
+    public PostView(Context context, TextPost post) {
+        this(context, (Post) post);
         addContent(post.getBody());
     }
 
@@ -97,7 +110,7 @@ public class PostView extends LinearLayout {
             public void onClick(View v) {
                 if (mIsLiked) {
                     mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.like_button_drawable));
-                    TaskThread.run(new Runnable() {
+                    AsyncTask.execute(new Runnable() {
                         @Override
                         public void run() {
                             mPost.unlike();
@@ -106,7 +119,7 @@ public class PostView extends LinearLayout {
                     });
                 } else {
                     mLikeButton.setImageDrawable(context.getResources().getDrawable(R.drawable.liked_button_drawable));
-                    TaskThread.run(new Runnable() {
+                    AsyncTask.execute(new Runnable() {
                         @Override
                         public void run() {
                             mPost.like();
@@ -160,30 +173,5 @@ public class PostView extends LinearLayout {
         } else {
             return context.getResources().getColor(colorId);
         }
-    }
-
-    private List<Drawable> getPostDrawables(final Post post) {
-        return TaskThread.getObject(new Callable<List<Drawable>>() {
-            @Override
-            public List<Drawable> call() {
-                try {
-                    HttpURLConnection connection;
-                    List<Drawable> drawables = new LinkedList<Drawable>();
-                    for (Photo photo : ((PhotoPost) post).getPhotos()) {
-                        connection = (HttpURLConnection) new URL(photo.getOriginalSize().getUrl()).openConnection();
-                        connection.connect();
-                        InputStream input = connection.getInputStream();
-                        Drawable drawable = Drawable.createFromStream(input, String.valueOf(post.getId()));
-                        drawables.add(drawable);
-                    }
-                    return drawables;
-
-                } catch (IOException e) {
-                    Log.d(TAG, "Failed to use the URL that was provided");
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        });
     }
 }

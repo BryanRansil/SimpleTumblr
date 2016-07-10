@@ -40,4 +40,8 @@ public class AuthorView extends LinearLayout {
         mBlogName.setText(blogName);
         mBlogAvatar.setImageDrawable(blogAvatar);
     }
+
+    public void setText(String text) {
+        mBlogName.setText(text);
+    }
 }

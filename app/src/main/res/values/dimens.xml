@@ -6,4 +6,5 @@
     <dimen name="card_margin">6dp</dimen>
     <dimen name="post_text_size">15sp</dimen>
     <dimen name="avatar_size">50dp</dimen>
+    <dimen name="rectangle_corner_radius">4dp</dimen>
 </resources>

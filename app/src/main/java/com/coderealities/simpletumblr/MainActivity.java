@@ -3,9 +3,14 @@ package com.coderealities.simpletumblr;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.tumblr.jumblr.JumblrClient;
@@ -73,62 +78,77 @@ public class MainActivity extends Activity {
         progress.setMessage("Loading Posts...");
         progress.show();
 
-        final Map<String, Object> params = new HashMap<String, Object>();
-        params.put("reblog_info", "true");
-
-        List<Post> compilation = TaskThread.getObject(new Callable<List<Post>>() {
+        TaskThread.run(new Runnable() {
             @Override
-            public List<Post> call() throws Exception {
-                return mClient.blogPosts("simplrpostexamples.tumblr.com", params);
+            public void run() {
+                final Map<String, Object> params = new HashMap<String, Object>();
+
+                final List<Post> posts = mClient.blogPosts("simplrpostexamples.tumblr.com", params);
+                if (posts.size() > 0) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (Post post : posts) {
+                                mPostListView.addView(createPostView(post));
+                            }
+                            progress.dismiss();
+                        }
+                    });
+                }
             }
         });
 
-        for (Post post : compilation) {
-            progress.dismiss();
-            mPostListView.addView(createPostView(post));
-        }
     }
 
     private View createPostView(Post post) {
         if (post instanceof AnswerPost) {
-            return new PostView(this, (AnswerPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (AnswerPost)post);
         } else if (post instanceof AudioPost) {
-            return new PostView(this, (AudioPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (AudioPost)post);
         } else if (post instanceof ChatPost) {
-            return new PostView(this, (ChatPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (ChatPost)post);
         } else if (post instanceof LinkPost) {
-            return new PostView(this, (LinkPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (LinkPost)post);
         } else if (post instanceof PhotoPost) {
-            return new PostView(this, (PhotoPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (PhotoPost)post);
         } else if (post instanceof QuotePost) {
-            return new PostView(this, (QuotePost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (QuotePost)post);
         } else if (post instanceof TextPost) {
-            return new PostView(this, (TextPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (TextPost)post);
         } else if (post instanceof VideoPost) {
-            return new PostView(this, (VideoPost)post, getAvatar(post.getBlogName()));
+            return new PostView(this, (VideoPost)post);
         }
-        return new PostView(this, (UnknownTypePost)post, getAvatar(post.getBlogName()));
+        return new PostView(this, (UnknownTypePost)post);
     }
 
-    @Nullable
-    private Drawable getAvatar(final String blogName) {
-        return TaskThread.getObject(new Callable<Drawable>() {
+    protected void fillAvatar(final String blogName, String imageName, final ImageView blogAvatar) {
+        TaskThread.run(new Runnable() {
             @Override
-            public Drawable call() throws Exception {
-                HttpURLConnection connection = null;
-                try {
-                    String blogAvatarUrl = mClient.blogInfo(blogName).avatar();
+            public void run() {
+                fillWithImage(mClient.blogInfo(blogName).avatar(), blogName, blogAvatar);
+            }
+        });
+    }
 
-                    connection = (HttpURLConnection) new URL(blogAvatarUrl).openConnection();
+    protected void fillWithImage(final String imageUrl, final String imageName, final ImageView imageView) {
+        TaskThread.run(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection connection;
+                try {
+                    connection = (HttpURLConnection) new URL(imageUrl).openConnection();
                     connection.connect();
-                    InputStream input = connection.getInputStream();
-                    return Drawable.createFromStream(input, String.valueOf(blogName));
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
+                    final InputStream input = connection.getInputStream();
+                    final Drawable drawable = Drawable.createFromStream(input, imageName);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageDrawable(drawable);
+                        }
+                    });
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return null;
             }
         });
     }
@@ -136,7 +156,7 @@ public class MainActivity extends Activity {
     private boolean loadedRecently() {
         return mLastLoadTimeMs + LOAD_REFRESH_TIME_MS > System.currentTimeMillis();
     }
-    
+
     @Override
     public void onStart() {
         super.onStart();

@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
  * Copyright (c) 2016 coderealities.com
  */
 public class TaskThread {
-    private static ExecutorService sExecutor = Executors.newFixedThreadPool(3);
+    private static ExecutorService sExecutor = Executors.newFixedThreadPool(5);
 
     @Nullable
     public static <T> T getObject(Callable<T> task) {
@@ -28,21 +28,11 @@ public class TaskThread {
     }
 
     public static void run(final Runnable task) {
-        Future<Void> future = sExecutor.submit(new Callable<Void>() {
+        sExecutor.execute(new Runnable() {
             @Override
-            public Void call() throws Exception {
+            public void run() {
                 task.run();
-                return null;
             }
         });
-        try {
-            future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
     }
 }
