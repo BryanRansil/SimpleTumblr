@@ -15,6 +15,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PostListActivity"/>
+        <receiver android:name=".CompilerAlarmReceiver"
+            android:process=":remote">
+
+        </receiver>
+        <service android:name=".CompilerService"
+            android:exported="false"/>
     </application>
 
 </manifest>

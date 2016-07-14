@@ -2,4 +2,9 @@
     <string name="app_name">Simplr</string>
     <string name="greeting">Deeeeerp!</string>
     <string name="notes">notes</string>
+    <string name="consumerKey">TFGB1WudJLpsDxa2B1cgYH2nE98aVxkfto8deCQFlRhxUSNjhA</string>
+    <string name="consumerSecret">nXu4bZo5Qwy1Fm0TlWbWkjIlQqG1S34UEDpboUpC9hjqzMUE8B</string>
+    <string name="oathToken">JSgSbWUnpQjQJv2RV7OR0kpfpYQjqHtrK5Y5Nfq9LPKC2s5Tv7</string>
+    <string name="oauthSecret">248VjWRvM6u2uayQchWcFD0aOwJOOdWn1ShPjgkVrr3IHu5BEk</string>
+    <string name="category_file_key">com.coderealities.simpletumblr.CATEGORY_FILE_KEY</string>
 </resources>

@@ -20,6 +20,7 @@ import com.tumblr.jumblr.types.TextPost;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 /**
  * Represents a tumblr post.
@@ -27,10 +28,12 @@ import org.jsoup.nodes.Element;
  */
 public class PostView extends LinearLayout {
     private static final String TAG = PostView.class.getName();
-    private final TextView mNoteCount;
+
     protected final LinearLayout mContentView;
-    private final AuthorView mAuthorLine;
     protected final Post mPost;
+
+    private final TextView mNoteCount;
+    private final AuthorView mAuthorLine;
     private final ImageView mLikeButton;
     private Boolean mIsLiked;
 
@@ -54,14 +57,15 @@ public class PostView extends LinearLayout {
 
     public PostView(Context context, AnswerPost post) {
         this(context, (Post) post);
+
+        WebView questionView = new WebView(getContext());
+        questionView.setBackgroundColor(getColor(getContext(), R.color.post_background_color_dark));
+
+        questionView.loadData(post.getQuestion(), "text/html; charset=utf-8", "utf-8");
+        addContent(questionView);
         addContent(new AuthorView(getContext(), post.getAskingName(), null));
 
-        WebView webView = new WebView(getContext());
-        webView.setBackgroundColor(getColor(getContext(), R.color.post_background_color));
-
-        webView.loadData(post.getQuestion(), "text/html; charset=utf-8", "utf-8");
-        addContent(webView);
-        addContent(post.getAnswer());
+        addContent(post.getAnswer(), post.getBlogName());
     }
 
     public PostView(Context context, final PhotoPost post) {
@@ -81,11 +85,11 @@ public class PostView extends LinearLayout {
                 imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.blank_image));
             }
             mContentView.addView(imageView);
-            if (context instanceof MainActivity) {
-                ((MainActivity) context).fillWithImage(getOptimalSize(photo, imageView).getUrl(), String.valueOf(post.getId()), imageView);
+            if (context instanceof PostListActivity) {
+                ((PostListActivity) context).fillWithImage(getOptimalSize(photo, imageView).getUrl(), String.valueOf(post.getId()), imageView);
             }
         }
-        addContent(post.getCaption());
+        addContent(post.getCaption(), post.getBlogName());
     }
 
     private PhotoSize getOptimalSize(Photo photo, ImageView imageView) {
@@ -101,7 +105,7 @@ public class PostView extends LinearLayout {
 
     public PostView(Context context, TextPost post) {
         this(context, (Post) post);
-        addContent(post.getBody());
+        addContent(post.getBody(), post.getBlogName());
     }
 
     private void setupLikeButton(final Context context) {
@@ -135,35 +139,48 @@ public class PostView extends LinearLayout {
         mContentView.addView(view);
     }
 
-    protected void addContent(String text) {
+    protected void addContent(String text, String blogName) {
         Document doc = Jsoup.parseBodyFragment(text);
-        addContent(simpleRecursiveAddContent(doc.body()));
+        if (hasAuthorLine(doc.body())) {
+            addContent(simpleRecursiveAddContent(doc.body(), blogName));
+        } else {
+            LinearLayout linearLayout = new LinearLayout(getContext());
+            linearLayout.setPadding(0, 0, 0, 0);
+            linearLayout.setOrientation(LinearLayout.VERTICAL);
+            addContent(insertContentInto(linearLayout, doc.body().children(), null));
+        }
     }
 
-    protected View simpleRecursiveAddContent(Element element) {
-        LinearLayout linearLayout = new LinearLayout(getContext());
-        linearLayout.setPadding(0, 0, 0, 0);
-        linearLayout.setOrientation(LinearLayout.VERTICAL);
-        if (hasAuthorLine(element)) {
-            linearLayout.addView(simpleRecursiveAddContent(element.child(1)));
-            linearLayout.addView(new AuthorView(getContext(), element.child(0).child(0).ownText(), null));
-
-            if (hasAuthorLine(element.child(1))) {
-                element.child(1).child(0).remove();
-                element.child(1).child(0).remove();
-            }
+    protected LinearLayout insertContentInto(LinearLayout linearLayout, Elements whatThisPosterWrote, String blogName) {
+        if (whatThisPosterWrote.size() > 0 && blogName != null) {
+            linearLayout.addView(new AuthorView(getContext(), blogName, null));
+        }
+        for (Element child : whatThisPosterWrote) {
             WebView webView = new WebView(getContext());
             webView.setBackgroundColor(getColor(getContext(), R.color.post_background_color));
 
-            webView.loadData(element.child(1).html(), "text/html; charset=utf-8", "utf-8");
+            webView.loadData(child.html(), "text/html; charset=utf-8", "utf-8");
             linearLayout.addView(webView);
         }
+        return linearLayout;
+    }
 
+    protected View simpleRecursiveAddContent(Element element, String blogName) {
+        LinearLayout linearLayout = new LinearLayout(getContext());
+        linearLayout.setPadding(0, 0, 0, 0);
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        Elements children = element.children();
+        if (hasAuthorLine(element)) {
+            linearLayout.addView(simpleRecursiveAddContent(element.child(1), element.child(0).child(0).ownText()));
+            children.remove(1);
+            children.remove(0);
+        }
+        insertContentInto(linearLayout, children, blogName);
         return linearLayout;
     }
 
     private boolean hasAuthorLine(Element element) {
-        return element.children().size() > 0 && element.child(0).children().size() > 0 && element.child(0).child(0).attr("class").equals("tumblr_blog");
+        return element.children().size() > 1 && element.child(0).children().size() > 0 && element.child(0).child(0).attr("class").equals("tumblr_blog");
     }
 
     protected static int getColor(Context context, int colorId) {

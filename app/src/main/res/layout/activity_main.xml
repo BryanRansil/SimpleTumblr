@@ -15,16 +15,10 @@
         android:layout_height="wrap_content"
         android:text="Hello World!"/>
 
-    <ScrollView
-        android:id="@+id/post_list_scroll_view"
+    <ListView
+        android:id="@+id/blog_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title_bar">
-        <LinearLayout
-            android:id="@+id/post_list_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-        </LinearLayout>
-    </ScrollView>
+        android:layout_below="@id/title_bar"/>
+
 </RelativeLayout>
