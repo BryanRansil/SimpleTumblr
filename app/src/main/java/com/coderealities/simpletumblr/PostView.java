@@ -44,6 +44,7 @@ public class PostView extends LinearLayout {
         mContentView = (LinearLayout)findViewById(R.id.post_content_layout);
         mAuthorLine = (AuthorView)findViewById(R.id.author_line);
         mAuthorLine.setText(post.getBlogName());
+        mAuthorLine.setLink(post.getPostUrl());
         if (context instanceof MainActivity) {
 //            ((MainActivity) context).fillAvatar(post.getBlogName(), String.valueOf(post.getBlogName() + ".tumblr.com"), mAuthorLine.mBlogAvatar);
         }
@@ -65,7 +66,7 @@ public class PostView extends LinearLayout {
         addContent(questionView);
         addContent(new AuthorView(getContext(), post.getAskingName(), null));
 
-        addContent(post.getAnswer(), post.getBlogName());
+        addContent(post.getAnswer());
     }
 
     public PostView(Context context, final PhotoPost post) {
@@ -89,7 +90,7 @@ public class PostView extends LinearLayout {
                 ((PostListActivity) context).fillWithImage(getOptimalSize(photo, imageView).getUrl(), String.valueOf(post.getId()), imageView);
             }
         }
-        addContent(post.getCaption(), post.getBlogName());
+        addContent(post.getCaption());
     }
 
     private PhotoSize getOptimalSize(Photo photo, ImageView imageView) {
@@ -105,7 +106,7 @@ public class PostView extends LinearLayout {
 
     public PostView(Context context, TextPost post) {
         this(context, (Post) post);
-        addContent(post.getBody(), post.getBlogName());
+        addContent(post.getBody());
     }
 
     private void setupLikeButton(final Context context) {
@@ -139,10 +140,10 @@ public class PostView extends LinearLayout {
         mContentView.addView(view);
     }
 
-    protected void addContent(String text, String blogName) {
+    protected void addContent(String text) {
         Document doc = Jsoup.parseBodyFragment(text);
         if (hasAuthorLine(doc.body())) {
-            addContent(simpleRecursiveAddContent(doc.body(), blogName));
+            addContent(simpleRecursiveAddContent(doc.body(), mPost.getBlogName()));
         } else {
             LinearLayout linearLayout = new LinearLayout(getContext());
             linearLayout.setPadding(0, 0, 0, 0);
