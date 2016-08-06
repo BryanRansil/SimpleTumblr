@@ -21,6 +21,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.w3c.dom.Text;
 
 /**
  * Represents a tumblr post.
@@ -59,10 +60,13 @@ public class PostView extends LinearLayout {
     public PostView(Context context, AnswerPost post) {
         this(context, (Post) post);
 
-        WebView questionView = new WebView(getContext());
-        questionView.setBackgroundColor(getColor(getContext(), R.color.post_background_color_dark));
-
-        questionView.loadData(post.getQuestion(), "text/html; charset=utf-8", "utf-8");
+        TextView questionView = new TextView(getContext());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            questionView.setBackground(getResources().getDrawable(R.drawable.question_view_background, context.getTheme()));
+        } else {
+            questionView.setBackgroundDrawable(getResources().getDrawable(R.drawable.question_view_background));
+        }
+        questionView.setText(post.getQuestion());
         addContent(questionView);
         addContent(new AuthorView(getContext(), post.getAskingName(), null));
 
@@ -146,7 +150,6 @@ public class PostView extends LinearLayout {
             addContent(simpleRecursiveAddContent(doc.body(), mPost.getBlogName()));
         } else {
             LinearLayout linearLayout = new LinearLayout(getContext());
-            linearLayout.setPadding(0, 0, 0, 0);
             linearLayout.setOrientation(LinearLayout.VERTICAL);
             addContent(insertContentInto(linearLayout, doc.body().children(), null));
         }
@@ -159,7 +162,7 @@ public class PostView extends LinearLayout {
         for (Element child : whatThisPosterWrote) {
             WebView webView = new WebView(getContext());
             webView.setBackgroundColor(getColor(getContext(), R.color.post_background_color));
-
+            webView.setPadding(4, 4, 4, 4);
             webView.loadData(child.html(), "text/html; charset=utf-8", "utf-8");
             linearLayout.addView(webView);
         }

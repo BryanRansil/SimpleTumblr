@@ -6,4 +6,5 @@
     <color name="post_background_color">#FFFFFF</color>
     <color name="post_background_color_dark">#DDDDDD</color>
     <color name="black">#000000</color>
+    <color name="loading_image_color">#AAAAAA</color>
 </resources>

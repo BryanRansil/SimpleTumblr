@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/post_background_color_dark"/>
+    <stroke android:color="@color/colorAccent"/>
+    <corners android:radius="@dimen/question_view_padding"/>
+    <padding android:left="@dimen/question_view_padding" android:top="@dimen/question_view_padding_vertical"
+        android:right="@dimen/question_view_padding" android:bottom="@dimen/question_view_padding_vertical" />
+</shape>

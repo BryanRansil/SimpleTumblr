@@ -9,11 +9,11 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.coderealities.simpletumblr.MainActivity">
 
-    <TextView
+    <LinearLayout
         android:id="@+id/title_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"/>
+        android:orientation="horizontal" />
 
     <ListView
         android:id="@+id/blog_list"
