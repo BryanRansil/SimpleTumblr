@@ -9,6 +9,7 @@
         android:id="@+id/author_avatar"
         android:layout_width="@dimen/avatar_size"
         android:layout_height="@dimen/avatar_size"
+        android:layout_margin="@dimen/activity_horizontal_margin"
         android:layout_gravity="center_vertical"
         style="@style/PostViewTheme"/>
     <TextView

@@ -44,10 +44,10 @@ public class PostView extends LinearLayout {
         mNoteCount = (TextView)findViewById(R.id.note_count);
         mContentView = (LinearLayout)findViewById(R.id.post_content_layout);
         mAuthorLine = (AuthorView)findViewById(R.id.author_line);
-        mAuthorLine.setText(post.getBlogName());
-        mAuthorLine.setLink(post.getPostUrl());
-        if (context instanceof MainActivity) {
-//            ((MainActivity) context).fillAvatar(post.getBlogName(), String.valueOf(post.getBlogName() + ".tumblr.com"), mAuthorLine.mBlogAvatar);
+        mAuthorLine.setText(post.getBlogName())
+                   .setLink(post.getPostUrl());
+        if (context instanceof PostListActivity) {
+            ((PostListActivity) context).fillWithAvatar(post.getBlogName(), mAuthorLine.mBlogAvatar);
         }
 
         mPost = post;
@@ -68,7 +68,7 @@ public class PostView extends LinearLayout {
         }
         questionView.setText(post.getQuestion());
         addContent(questionView);
-        addContent(new AuthorView(getContext(), post.getAskingName(), null));
+        addContent(new AuthorView(getContext(), post.getAskingName()));
 
         addContent(post.getAnswer());
     }
@@ -157,7 +157,7 @@ public class PostView extends LinearLayout {
 
     protected LinearLayout insertContentInto(LinearLayout linearLayout, Elements whatThisPosterWrote, String blogName) {
         if (whatThisPosterWrote.size() > 0 && blogName != null) {
-            linearLayout.addView(new AuthorView(getContext(), blogName, null));
+            linearLayout.addView(new AuthorView(getContext(), blogName));
         }
         for (Element child : whatThisPosterWrote) {
             WebView webView = new WebView(getContext());

@@ -19,13 +19,16 @@ public class AuthorView extends LinearLayout {
     protected TextView mBlogName;
     protected ImageView mBlogAvatar;
 
-    public AuthorView(Context context, String blogName, Drawable blogAvatar) {
+    public AuthorView(Context context, String blogName) {
         this(context);
-        setContent(blogName, blogAvatar);
+        mBlogName.setText(blogName);
+        if (getContext() instanceof PostListActivity) {
+            ((PostListActivity) getContext()).fillWithAvatar(blogName, mBlogAvatar);
+        }
     }
 
     public AuthorView(Context context) {
-        this(context, null);
+        this(context, (AttributeSet) null);
     }
 
     public AuthorView(Context context, AttributeSet attrs) {
@@ -39,23 +42,20 @@ public class AuthorView extends LinearLayout {
         mBlogAvatar = (ImageView)findViewById(R.id.author_avatar);
     }
 
-    public void setContent(String blogName, Drawable blogAvatar) {
-        mBlogName.setText(blogName);
-        mBlogAvatar.setImageDrawable(blogAvatar);
-    }
-
-    public void setText(String text) {
+    public AuthorView setText(String text) {
         mBlogName.setText(text);
+        return this;
     }
 
-    public void setLink(String postUrl) {
+    public AuthorView setLink(String postUrl) {
         Uri linkUri = Uri.parse(postUrl);
         final Intent linkIntent = new Intent(Intent.ACTION_VIEW, linkUri);
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                v.getContext().startActivity(linkIntent);
+                getContext().startActivity(linkIntent);
             }
         });
+        return this;
     }
 }

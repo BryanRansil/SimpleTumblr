@@ -137,6 +137,15 @@ public class PostListActivity extends Activity {
                     e.printStackTrace();
                 }
             }
+         });
+     }
+
+    public void fillWithAvatar(final String blogName, final ImageView avatar) {
+        TaskThread.run(new Runnable() {
+            @Override
+            public void run() {
+                fillWithImage("https://api.tumblr.com/v2/blog/" + blogName + ".tumblr.com/avatar/96", blogName, avatar);
+            }
         });
     }
 }
