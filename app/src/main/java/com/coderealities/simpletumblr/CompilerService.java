@@ -1,17 +1,19 @@
 package com.coderealities.simpletumblr;
 
-import android.app.Activity;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
+import android.net.ConnectivityManager;
 import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.Blog;
 import com.tumblr.jumblr.types.Post;
+
+import org.scribe.exceptions.OAuthConnectionException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +22,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Copyright (c) 2016 coderealities.com
@@ -60,8 +61,18 @@ public class CompilerService extends IntentService {
             // Extract the receiver passed into the service
             resultReceiver = intent.getParcelableExtra(EXTRA_RECEIVER);
         }
-        if (ACTION_UPDATE_COMPLATION.equals(intent.getAction())) {
-            updateComplation();
+        if (ACTION_UPDATE_COMPLATION.equals(intent.getAction()) && haveNetworkConnection()) {
+            try {
+                updateComplation();
+            } catch (JumblrException e) {
+                Log.e(TAG, "CompilerService had JumblrException");
+                e.printStackTrace();
+                throw e;
+            } catch (OAuthConnectionException e) {
+                Log.e(TAG, "CompilerService failed to connect, despite having checked that we have a network connection");
+                e.printStackTrace();
+                throw e;
+            }
         }
     }
 
@@ -115,6 +126,15 @@ public class CompilerService extends IntentService {
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean haveNetworkConnection() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager.getActiveNetworkInfo() == null) {
+            return false;
+        }
+        return connectivityManager.getActiveNetworkInfo().isConnected();
     }
 
     private ArrayList<Blog> getBlogsUserFollows() {
