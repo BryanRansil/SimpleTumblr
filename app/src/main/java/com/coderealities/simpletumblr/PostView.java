@@ -33,48 +33,49 @@ public class PostView extends LinearLayout {
     protected final LinearLayout mContentView;
     protected final Post mPost;
 
+    private final PostListFragment mPostListFragment;
     private final TextView mNoteCount;
     private final AuthorView mAuthorLine;
     private final ImageView mLikeButton;
     private Boolean mIsLiked;
 
-    public PostView(Context context, Post post) {
-        super(context);
-        inflate(context, R.layout.post_view, this);
+    public PostView(PostListFragment postListFragment, Post post) {
+        super(postListFragment.getActivity());
+        mPostListFragment = postListFragment;
+        inflate(postListFragment.getActivity(), R.layout.post_view, this);
         mNoteCount = (TextView)findViewById(R.id.note_count);
         mContentView = (LinearLayout)findViewById(R.id.post_content_layout);
         mAuthorLine = (AuthorView)findViewById(R.id.author_line);
         mAuthorLine.setText(post.getBlogName())
                    .setLink(post.getPostUrl());
-        if (context instanceof PostListActivity) {
-            ((PostListActivity) context).fillWithAvatar(post.getBlogName(), mAuthorLine.mBlogAvatar);
-        }
+        postListFragment.fillWithAvatar(post.getBlogName(), mAuthorLine.mBlogAvatar);
 
         mPost = post;
         mNoteCount.setText(post.getNoteCount() + " ");
         mLikeButton = (ImageView)findViewById(R.id.like_button);
         mIsLiked = post.isLiked();
-        setupLikeButton(context);
+        setupLikeButton(postListFragment.getActivity());
     }
 
-    public PostView(Context context, AnswerPost post) {
-        this(context, (Post) post);
+    public PostView(PostListFragment postListFragment, AnswerPost post) {
+        this(postListFragment, (Post) post);
 
         TextView questionView = new TextView(getContext());
+        questionView.setTextColor(getColor(getContext(), R.color.black));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            questionView.setBackground(getResources().getDrawable(R.drawable.question_view_background, context.getTheme()));
+            questionView.setBackground(getResources().getDrawable(R.drawable.question_view_background, postListFragment.getContext().getTheme()));
         } else {
             questionView.setBackgroundDrawable(getResources().getDrawable(R.drawable.question_view_background));
         }
         questionView.setText(post.getQuestion());
         addContent(questionView);
-        addContent(new AuthorView(getContext(), post.getAskingName()));
+        addContent(new AuthorView(postListFragment, post.getAskingName()));
 
         addContent(post.getAnswer());
     }
 
-    public PostView(Context context, final PhotoPost post) {
-        this(context, (Post) post);
+    public PostView(PostListFragment postListFragment, final PhotoPost post) {
+        this(postListFragment, (Post) post);
 
         int width = mContentView.getWidth() - mContentView.getPaddingLeft();
         for (Photo photo : post.getPhotos()) {
@@ -85,14 +86,12 @@ public class PostView extends LinearLayout {
             imageView.setMinimumWidth(width);
             imageView.setMinimumHeight(width * photo.getOriginalSize().getHeight() / photo.getOriginalSize().getWidth());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                imageView.setImageDrawable(context.getDrawable(R.drawable.blank_image));
+                imageView.setImageDrawable(postListFragment.getActivity().getDrawable(R.drawable.blank_image));
             } else {
-                imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.blank_image));
+                imageView.setImageDrawable(postListFragment.getActivity().getResources().getDrawable(R.drawable.blank_image));
             }
             mContentView.addView(imageView);
-            if (context instanceof PostListActivity) {
-                ((PostListActivity) context).fillWithImage(getOptimalSize(photo, imageView).getUrl(), String.valueOf(post.getId()), imageView);
-            }
+            postListFragment.fillWithImage(getOptimalSize(photo, imageView).getUrl(), String.valueOf(post.getId()), imageView);
         }
         addContent(post.getCaption());
     }
@@ -108,8 +107,8 @@ public class PostView extends LinearLayout {
 //        return bestMatch;
     }
 
-    public PostView(Context context, TextPost post) {
-        this(context, (Post) post);
+    public PostView(PostListFragment postListFragment, TextPost post) {
+        this(postListFragment, (Post) post);
         addContent(post.getBody());
     }
 
@@ -157,7 +156,7 @@ public class PostView extends LinearLayout {
 
     protected LinearLayout insertContentInto(LinearLayout linearLayout, Elements whatThisPosterWrote, String blogName) {
         if (whatThisPosterWrote.size() > 0 && blogName != null) {
-            linearLayout.addView(new AuthorView(getContext(), blogName));
+            linearLayout.addView(new AuthorView(mPostListFragment, blogName));
         }
         for (Element child : whatThisPosterWrote) {
             WebView webView = new WebView(getContext());

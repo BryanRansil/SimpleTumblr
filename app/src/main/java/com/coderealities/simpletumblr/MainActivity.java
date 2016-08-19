@@ -1,115 +1,156 @@
 package com.coderealities.simpletumblr;
 
-import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.Fragment;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import com.tumblr.jumblr.JumblrClient;
+
+import java.util.concurrent.TimeUnit;
 
 /*
  * Copyright (c) 2016 coderealities.com
  */
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity implements PostListFragment.PostListFragmentHost, StreamSettingsFragment.StreamSettingsFragmentHost {
     private static final String TAG = MainActivity.class.getName();
-    private ArrayList<String> blogCategoryList = new ArrayList<String>();
-    private ArrayAdapter<String> blogButtonAdapter;
+    private static final String POST_LIST_FRAGMENT_CONTENT = "mPostListFragmentContent";
+    private static final String STREAM_MENU_OPTION = "Stream";
+    private static final String STREAM_SETTINGS_MENU_OPTION = "Stream Settings";
+    private static final long PERIOD_BETWEEN_UPDATES_MILLIS = TimeUnit.MINUTES.toMillis(3);
+    private static final String[] OPTIONS_MENU = {STREAM_MENU_OPTION, STREAM_SETTINGS_MENU_OPTION};
+
+    private JumblrClient mClient;
+    private PostListFragment mPostListFragment;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private DrawerLayout.SimpleDrawerListener mDrawerToggle;
+
+    private PendingIntent mRepeatingUpdateIntent;
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Fragment fragment;
+            switch (OPTIONS_MENU[position]) {
+                case STREAM_MENU_OPTION :
+                    fragment = mPostListFragment;
+                    break;
+                case STREAM_SETTINGS_MENU_OPTION :
+                    fragment = new StreamSettingsFragment();
+                    break;
+                default:
+                    return;
+            }
+
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.content_frame, fragment)
+                    .commit();
+
+            // Highlight the selected item, update the title, and close the drawer
+            mDrawerList.setItemChecked(position, true);
+            mDrawerLayout.closeDrawer(mDrawerList);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mClient = new JumblrClient(getString(R.string.consumerKey), getString(R.string.consumerSecret));
+        mClient.setToken(getString(R.string.oathToken), getString(R.string.oauthSecret));
+
         setContentView(R.layout.activity_main);
 
-        final ListView blogList = (ListView) findViewById(R.id.blog_list);
-        blogList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String title = (String) parent.getItemAtPosition(position);
-                String category = title.substring(0, title.lastIndexOf(" "));
-                Intent intent = new Intent(MainActivity.this, PostListActivity.class);
-                intent.putExtra(PostListActivity.EXTRA_CATEGORY, category);
-                startActivity(intent);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+        // Set the adapter for the list view
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, OPTIONS_MENU));
+        // Set the list's click listener
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new DrawerLayout.SimpleDrawerListener() {
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                invalidateOptionsMenu();
             }
-        });
-        blogButtonAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, blogCategoryList);
-        blogList.setAdapter(blogButtonAdapter);
+
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                invalidateOptionsMenu();
+            }
+        };
+
+        // TODO: setDrawerListener is deprecated. Find part of the android documentation that's actually more up to date than what I used
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        if (savedInstanceState != null) {
+            mPostListFragment = (PostListFragment) getFragmentManager().getFragment(savedInstanceState, POST_LIST_FRAGMENT_CONTENT);
+        }
+
+        mRepeatingUpdateIntent =  PendingIntent.getBroadcast(this, CompilerAlarmReceiver.REQUEST_CODE,
+                        new Intent(getApplicationContext(), CompilerAlarmReceiver.class),
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        //Save the fragment's instance
+        if (mPostListFragment.isVisible()) {
+            getFragmentManager().putFragment(outState, POST_LIST_FRAGMENT_CONTENT, mPostListFragment);
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        cancelAlarm();
-        blogCategoryList.clear();
-        SharedPreferences sharedPreferences = getSharedPreferences(
-                getString(R.string.category_file_key), Context.MODE_PRIVATE);
-        Set<String> blogs = sharedPreferences.getStringSet(CompilerService.BLOG_NAMES, new HashSet<String>(0));
-        for (String blog : blogs) {
-            if (getCountOf(blog + CompilerService.ORIGINAL_SUFFIX) > 0) {
-                blogCategoryList.add(blog + CompilerService.ORIGINAL_SUFFIX + " (" + getCountOf(blog + CompilerService.ORIGINAL_SUFFIX) + ")");
-            }
-            if (getCountOf(blog + CompilerService.REBLOG_SUFFIX) > 0) {
-                blogCategoryList.add(blog + CompilerService.REBLOG_SUFFIX + " (" + getCountOf(blog + CompilerService.REBLOG_SUFFIX) + ")");
-            }
+        cancelRepeatingUpdate();
+        if (mPostListFragment == null) {
+            mPostListFragment = new PostListFragment();
         }
-        blogButtonAdapter.notifyDataSetChanged();
-    }
 
-    private Integer getCountOf(String categoryName) {
-        SharedPreferences mSharedPreferences = getSharedPreferences(
-                getString(R.string.category_file_key), Context.MODE_PRIVATE);;
-        String postPairings = mSharedPreferences.getString(categoryName, "");
-        if ("".equals(postPairings)) {
-            return 0;
-        }
-        return postPairings.split(",").length;
+        getFragmentManager().beginTransaction()
+                            .replace(R.id.content_frame, mPostListFragment)
+                            .commit();
     }
 
     @Override
     public void onPause() {
-        scheduleAlarm();
+        scheduleRepeatingUpdate();
         super.onPause();
     }
 
-    public void cancelAlarm() {
-        Intent intent = new Intent(getApplicationContext(), CompilerAlarmReceiver.class);
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this, CompilerAlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    public void cancelRepeatingUpdate() {
         AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarm.cancel(pIntent);
+        alarm.cancel(mRepeatingUpdateIntent);
     }
 
-    private void scheduleAlarm() {
-        // Construct an intent that will execute the AlarmReceiver
-        Intent intent = new Intent(getApplicationContext(), CompilerAlarmReceiver.class);
-        // Create a PendingIntent to be triggered when the alarm goes off
-        final PendingIntent pIntent = PendingIntent.getBroadcast(this, CompilerAlarmReceiver.REQUEST_CODE,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // Setup periodic alarm every 5 seconds
-        long firstMillis = System.currentTimeMillis(); // alarm is set right away
+    private void scheduleRepeatingUpdate() {
+        long firstTriggerTimeMillis = System.currentTimeMillis();
         AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        // First parameter is the type: ELAPSED_REALTIME, ELAPSED_REALTIME_WAKEUP, RTC_WAKEUP
-        // Interval can be INTERVAL_FIFTEEN_MINUTES, INTERVAL_HALF_HOUR, INTERVAL_HOUR, INTERVAL_DAY
-        long experimentalPeriodMs = 4 * 1000;
-        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstMillis,
-                experimentalPeriodMs, pIntent);
+        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, firstTriggerTimeMillis,
+                                  PERIOD_BETWEEN_UPDATES_MILLIS, mRepeatingUpdateIntent);
+    }
+
+    public void nextPost(View view) {
+        Log.d(TAG, "nextPost");
+        mPostListFragment.nextPost();
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
+    public JumblrClient getJumblrClient() {
+        return mClient;
     }
 }

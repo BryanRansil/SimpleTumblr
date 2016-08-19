@@ -12,4 +12,5 @@
     <dimen name="post_view_horizontal_padding">6dp</dimen>
     <dimen name="question_view_padding">6dp</dimen>
     <dimen name="question_view_padding_vertical">2dp</dimen>
+    <dimen name="activity_stream_settings_padding">4dp</dimen>
 </resources>

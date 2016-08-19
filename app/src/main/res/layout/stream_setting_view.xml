@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/blog_stream_setting_name"
+        android:padding="@dimen/activity_stream_settings_padding"
+        android:layout_column="1"
+        android:layout_weight=".3"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/blog_stream_setting_original_checkbox"
+        android:padding="@dimen/activity_stream_settings_padding"
+        android:layout_column="2"
+        android:layout_weight=".45"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/blog_stream_setting_visual_checkbox"
+        android:padding="@dimen/activity_stream_settings_padding"
+        android:layout_column="3"
+        android:layout_weight=".30"/>
+</TableRow>

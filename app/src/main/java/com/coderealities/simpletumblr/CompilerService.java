@@ -10,18 +10,17 @@ import android.util.Log;
 
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
-import com.tumblr.jumblr.types.Blog;
+import com.tumblr.jumblr.types.AnswerPost;
 import com.tumblr.jumblr.types.Post;
+import com.tumblr.jumblr.types.TextPost;
+import com.tumblr.jumblr.types.VideoPost;
 
 import org.scribe.exceptions.OAuthConnectionException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Copyright (c) 2016 coderealities.com
@@ -29,9 +28,9 @@ import java.util.Set;
 public class CompilerService extends IntentService {
     public static final String ACTION_UPDATE_COMPLATION = CompilerService.class.getCanonicalName() + ".UPDATE_COMPLATION";
     public static final String EXTRA_RECEIVER = CompilerService.class.getCanonicalName() + ".extra.RECEIVER";
-    public static final String ORIGINAL_SUFFIX = " Originals";
-    public static final String REBLOG_SUFFIX = " Reblogs";
-    public static final String BLOG_NAMES = "BLOG_NAMES";
+    public static final String POST_LIST = CompilerService.class.getCanonicalName() + ".POST_LIST";
+    public static final String POST_LIST_DIVIDER = ";";
+    public static final String POST_LIST_ENTRY_DIVIDER = ",";
 
     private static final String TAG = CompilerService.class.getSimpleName();
     private static final String LAST_ID_KEY = CompilerService.class.getCanonicalName() + ".LAST_ID_KEY";
@@ -47,7 +46,7 @@ public class CompilerService extends IntentService {
     public void onCreate() {
         super.onCreate();
         mSharedPreferences = getSharedPreferences(
-                getString(R.string.category_file_key), Context.MODE_PRIVATE);
+                getString(R.string.complation_file_key), Context.MODE_PRIVATE);
 
         mClient = new JumblrClient(getString(R.string.consumerKey), getString(R.string.consumerSecret));
         mClient.setToken(getString(R.string.oathToken), getString(R.string.oauthSecret));
@@ -78,14 +77,8 @@ public class CompilerService extends IntentService {
 
     private void updateComplation() {
         Long lastId = mSharedPreferences.getLong(LAST_ID_KEY, 0);
-        ArrayList<Blog> blogsUserFollows = getBlogsUserFollows();
-        HashMap<String, StringBuilder> categories = new HashMap<>(blogsUserFollows.size());
-        for (Blog blog : blogsUserFollows) {
-            String originals = blog.getName() + ORIGINAL_SUFFIX;
-            categories.put(originals, new StringBuilder(mSharedPreferences.getString(originals, "")));
-            String reblogs = blog.getName() + REBLOG_SUFFIX;
-            categories.put(reblogs, new StringBuilder(mSharedPreferences.getString(reblogs, "")));
-        }
+        HashMap<String, StringBuilder> categoryList = new HashMap<>(1);
+        categoryList.put(POST_LIST, new StringBuilder(mSharedPreferences.getString(POST_LIST, "")));
 
         // give list, store updated list, and check
         try {
@@ -94,38 +87,56 @@ public class CompilerService extends IntentService {
             if (lastId != 0) {
                 params.put("since_id", lastId);
             } else {
-                params.put("limit", 100);
+                Log.d(TAG, "First time this service has run, collecting a number of posts");
+                params.put("limit", 20);
             }
             params.put("reblog_info", true);
             List<Post> recentPosts = mClient.userDashboard(params);
             if (recentPosts.size() == 0) {
+                Log.d(TAG, "No posts, finished");
                 return;
             }
             for (ListIterator<Post> iterator = recentPosts.listIterator(recentPosts.size()); iterator.hasPrevious(); ) {
                 Post post = iterator.previous();
-                if (post.getRebloggedFromName() == null) {
-                    categories.get(post.getBlogName() + ORIGINAL_SUFFIX).append(post.getId() + ",");
-                } else {
-                    categories.get(post.getBlogName() + REBLOG_SUFFIX).append(post.getId() + ",");
+                Log.d(TAG, "  (Update) adding a post");
+                if (isImportantPost(post)) {
+                    categoryList.get(POST_LIST).append(post.getId() + POST_LIST_ENTRY_DIVIDER + post.getBlogName() + POST_LIST_DIVIDER);
                 }
+                Log.d(TAG, "  (Update) added");
             }
 
             SharedPreferences.Editor editor = mSharedPreferences.edit();
             editor.putLong(LAST_ID_KEY, recentPosts.get(0).getId());
-            Set<String> blogNames = new HashSet<>(blogsUserFollows.size());
-            for (Blog blog : blogsUserFollows) {
-                String originals = blog.getName() + ORIGINAL_SUFFIX;
-                editor.putString(originals, categories.get(originals).toString());
-                String reblogs = blog.getName() + REBLOG_SUFFIX;
-                editor.putString(reblogs, categories.get(reblogs).toString());
-                blogNames.add(blog.getName());
-            }
-            editor.putStringSet(BLOG_NAMES, blogNames);
+            editor.putString(POST_LIST, categoryList.get(POST_LIST).toString());
             editor.commit();
             Log.d(TAG, "Finished Update");
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isImportantPost(final Post post) {
+        final String blogName = post.getBlogName();
+        final boolean needsToBeOriginal = mSharedPreferences.getBoolean(blogName + StreamSettingsFragment.SETTING_PREFERENCE_DIVIDER + StreamSettingsFragment.SETTING_ORIGINAL, false);
+        final boolean needsToBeVisual = mSharedPreferences.getBoolean(blogName + StreamSettingsFragment.SETTING_PREFERENCE_DIVIDER + StreamSettingsFragment.SETTING_VISUAL, false);
+        if (needsToBeOriginal && (post.getRebloggedFromName() != null)) {
+            return false;
+        }
+        if (needsToBeVisual && !visualPost(post)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean visualPost(Post post) {
+        if (post instanceof VideoPost) {
+            return true;
+        } else if (post instanceof AnswerPost) {
+            return ((AnswerPost) post).getAnswer().contains("<img");
+        } else if (post instanceof TextPost) {
+            return ((TextPost) post).getBody().contains("<img");
+        }
+        return false;
     }
 
     private boolean haveNetworkConnection() {
@@ -135,19 +146,5 @@ public class CompilerService extends IntentService {
             return false;
         }
         return connectivityManager.getActiveNetworkInfo().isConnected();
-    }
-
-    private ArrayList<Blog> getBlogsUserFollows() {
-        Map<String, Object> userFollowingParams = new HashMap<String, Object>();
-        int offset = 0;
-        List<Blog> blogs = mClient.userFollowing();
-        ArrayList<Blog> finalList = new ArrayList<>();
-        while (blogs.size() > 0) {
-            finalList.addAll(blogs);
-            offset += 20;
-            userFollowingParams.put("offset", offset);
-            blogs = mClient.userFollowing(userFollowingParams);
-        }
-        return finalList;
     }
 }

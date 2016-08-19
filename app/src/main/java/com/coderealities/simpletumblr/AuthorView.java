@@ -19,12 +19,10 @@ public class AuthorView extends LinearLayout {
     protected TextView mBlogName;
     protected ImageView mBlogAvatar;
 
-    public AuthorView(Context context, String blogName) {
-        this(context);
+    public AuthorView(PostListFragment postListFragment, String blogName) {
+        this(postListFragment.getActivity());
         mBlogName.setText(blogName);
-        if (getContext() instanceof PostListActivity) {
-            ((PostListActivity) getContext()).fillWithAvatar(blogName, mBlogAvatar);
-        }
+        postListFragment.fillWithAvatar(blogName, mBlogAvatar);
     }
 
     public AuthorView(Context context) {

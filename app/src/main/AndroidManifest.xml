@@ -16,9 +16,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PostListActivity"
-            android:configChanges="screenSize|orientation"
-            android:theme="@style/PostViewTheme"/>
         <receiver android:name=".CompilerAlarmReceiver"
             android:process=":remote">
 

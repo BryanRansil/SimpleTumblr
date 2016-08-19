@@ -6,5 +6,9 @@
     <string name="consumerSecret">nXu4bZo5Qwy1Fm0TlWbWkjIlQqG1S34UEDpboUpC9hjqzMUE8B</string>
     <string name="oathToken">JSgSbWUnpQjQJv2RV7OR0kpfpYQjqHtrK5Y5Nfq9LPKC2s5Tv7</string>
     <string name="oauthSecret">248VjWRvM6u2uayQchWcFD0aOwJOOdWn1ShPjgkVrr3IHu5BEk</string>
-    <string name="category_file_key">com.coderealities.simpletumblr.CATEGORY_FILE_KEY</string>
+    <string name="complation_file_key">com.coderealities.simpletumblr.COMPLATION_FILE_KEY</string>
+    <string name="blog_stream_settings_file_key">com.coderealities.simpletumblr.BLOG_STREAM_SETTINGS_FILE_KEY</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="next_post_button_text">Next Post</string>
 </resources>
