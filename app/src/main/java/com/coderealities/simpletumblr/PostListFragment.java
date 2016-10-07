@@ -110,10 +110,10 @@ public class PostListFragment extends ListFragment {
     }
 
     public void nextPost() {
-        final SharedPreferences sharedPreferences = getActivity().getSharedPreferences(
+        final SharedPreferences complation = getActivity().getSharedPreferences(
                 getString(R.string.complation_file_key), Context.MODE_PRIVATE);
 
-        final String postInfoListString = sharedPreferences.getString(CompilerService.POST_LIST, "");
+        final String postInfoListString = complation.getString(CompilerService.POST_LIST, "");
         if (postInfoListString.equals("")) {
             Log.d(TAG, "PostInfoList... was empty");
             Toast.makeText(getActivity(), "No more entries", Toast.LENGTH_LONG).show();

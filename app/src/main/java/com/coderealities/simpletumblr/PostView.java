@@ -51,7 +51,7 @@ public class PostView extends LinearLayout {
         postListFragment.fillWithAvatar(post.getBlogName(), mAuthorLine.mBlogAvatar);
 
         mPost = post;
-        mNoteCount.setText(post.getNoteCount() + " ");
+        mNoteCount.setText(post.getNoteCount() + " " + post.getType());
         mLikeButton = (ImageView)findViewById(R.id.like_button);
         mIsLiked = post.isLiked();
         setupLikeButton(postListFragment.getActivity());

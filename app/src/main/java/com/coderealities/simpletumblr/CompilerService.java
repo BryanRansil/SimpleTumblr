@@ -11,6 +11,7 @@ import android.util.Log;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.types.AnswerPost;
+import com.tumblr.jumblr.types.PhotoPost;
 import com.tumblr.jumblr.types.Post;
 import com.tumblr.jumblr.types.TextPost;
 import com.tumblr.jumblr.types.VideoPost;
@@ -36,7 +37,8 @@ public class CompilerService extends IntentService {
     private static final String LAST_ID_KEY = CompilerService.class.getCanonicalName() + ".LAST_ID_KEY";
 
     private JumblrClient mClient;
-    private SharedPreferences mSharedPreferences;
+    private SharedPreferences mCompilation;
+    private SharedPreferences mFilterPreferences;
 
     public CompilerService() {
         super("CompilerService");
@@ -45,8 +47,10 @@ public class CompilerService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mSharedPreferences = getSharedPreferences(
+        mCompilation = getSharedPreferences(
                 getString(R.string.complation_file_key), Context.MODE_PRIVATE);
+        mFilterPreferences = getSharedPreferences(
+                getString(R.string.blog_stream_settings_file_key), Context.MODE_PRIVATE);
 
         mClient = new JumblrClient(getString(R.string.consumerKey), getString(R.string.consumerSecret));
         mClient.setToken(getString(R.string.oathToken), getString(R.string.oauthSecret));
@@ -76,9 +80,9 @@ public class CompilerService extends IntentService {
     }
 
     private void updateComplation() {
-        Long lastId = mSharedPreferences.getLong(LAST_ID_KEY, 0);
+        Long lastId = mCompilation.getLong(LAST_ID_KEY, 0);
         HashMap<String, StringBuilder> categoryList = new HashMap<>(1);
-        categoryList.put(POST_LIST, new StringBuilder(mSharedPreferences.getString(POST_LIST, "")));
+        categoryList.put(POST_LIST, new StringBuilder(mCompilation.getString(POST_LIST, "")));
 
         // give list, store updated list, and check
         try {
@@ -88,7 +92,7 @@ public class CompilerService extends IntentService {
                 params.put("since_id", lastId);
             } else {
                 Log.d(TAG, "First time this service has run, collecting a number of posts");
-                params.put("limit", 20);
+                params.put("limit", 100);
             }
             params.put("reblog_info", true);
             List<Post> recentPosts = mClient.userDashboard(params);
@@ -105,7 +109,7 @@ public class CompilerService extends IntentService {
                 Log.d(TAG, "  (Update) added");
             }
 
-            SharedPreferences.Editor editor = mSharedPreferences.edit();
+            SharedPreferences.Editor editor = mCompilation.edit();
             editor.putLong(LAST_ID_KEY, recentPosts.get(0).getId());
             editor.putString(POST_LIST, categoryList.get(POST_LIST).toString());
             editor.commit();
@@ -117,23 +121,25 @@ public class CompilerService extends IntentService {
 
     private boolean isImportantPost(final Post post) {
         final String blogName = post.getBlogName();
-        final boolean needsToBeOriginal = mSharedPreferences.getBoolean(blogName + StreamSettingsFragment.SETTING_PREFERENCE_DIVIDER + StreamSettingsFragment.SETTING_ORIGINAL, false);
-        final boolean needsToBeVisual = mSharedPreferences.getBoolean(blogName + StreamSettingsFragment.SETTING_PREFERENCE_DIVIDER + StreamSettingsFragment.SETTING_VISUAL, false);
+        final boolean needsToBeOriginal = mFilterPreferences.getBoolean(blogName + StreamSettingsFragment.SETTING_PREFERENCE_DIVIDER + StreamSettingsFragment.SETTING_ORIGINAL, false);
+        final boolean needsToBeVisual = mFilterPreferences.getBoolean(blogName + StreamSettingsFragment.SETTING_PREFERENCE_DIVIDER + StreamSettingsFragment.SETTING_VISUAL, false);
         if (needsToBeOriginal && (post.getRebloggedFromName() != null)) {
             return false;
         }
-        if (needsToBeVisual && !visualPost(post)) {
-            return false;
+        if (needsToBeVisual) {
+            return visualPost(post);
         }
         return true;
     }
 
     private boolean visualPost(Post post) {
-        if (post instanceof VideoPost) {
+        if (post instanceof VideoPost || post instanceof PhotoPost) {
             return true;
         } else if (post instanceof AnswerPost) {
+            Log.d(TAG, "BRYAN From answer: " + ((AnswerPost) post).getAnswer());
             return ((AnswerPost) post).getAnswer().contains("<img");
         } else if (post instanceof TextPost) {
+            Log.d(TAG, "BRYAN From text: " + ((TextPost) post).getBody());
             return ((TextPost) post).getBody().contains("<img");
         }
         return false;
